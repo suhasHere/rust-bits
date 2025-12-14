@@ -39,3 +39,40 @@ fn main() {
 ```
 
 Use `ok_or_else` when you want to avoid creating the error value unless the `Option` is `None`.
+
+
+
+In Rust `||` is used two ways: as the boolean OR operator (`a || b`) and as the delimiter for closure parameters (`|args|` — an empty parameter list is written `||`). In your `.ok_or_else(|| Error::...)` example `|| ...` defines a zero-argument closure that's called only when the `Option` is `None`.
+
+Brief explanation of the examples below:
+- First example shows boolean OR.
+- Second shows a zero-arg closure passed to `ok_or_else` (lazy) versus `ok_or` (eager).
+
+```rust
+// rust
+fn make_err() -> String {
+    println!("make_err called");
+    "error".into()
+}
+
+fn main() {
+    // boolean OR
+    let a = true;
+    let b = false;
+    if a || b {
+        println!("at least one is true");
+    }
+
+    // closure (zero-arg) used with ok_or_else -> lazy, only called on None
+    let some_val: Option<i32> = Some(1);
+    let _ = some_val.ok_or_else(|| make_err()); // make_err NOT called
+
+    // ok_or constructs the error eagerly, so make_err is called even if Some
+    let _ = some_val.ok_or(make_err()); // make_err called here
+
+    // closures with arguments use single pipes: |x| x + 1
+    let incr = |x: i32| x + 1;
+    println!("{}", incr(5)); // prints 6
+}
+```
+
