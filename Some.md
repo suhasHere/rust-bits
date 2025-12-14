@@ -37,16 +37,23 @@ explicit about whether the value exists:
 - default / not set yet: `tls_cert_filename = None`
 - set by the builder: `tls_cert_filename = Some("...".to_string())`
 
-ome(...) is the enum variant of Option<T> that holds a value. Use Some(value) to represent “there is a value”, and None to represent “no value”. Common patterns:
-Store an optional string: tls_cert_filename: Option<String>
-Set it: tls_cert_filename = Some(path.into())
+Some(...) is the enum variant of Option<T> that holds a value. 
+Use Some(value) to represent “there is a value”, and None to represent “no value”. 
+
+Common patterns:
+- Store an optional string: tls_cert_filename: Option<String>
+- Set it: tls_cert_filename = Some(path.into())
+
 Check/use it:
+-
+```
 if let Some(path) = &cfg.tls_cert_filename { ... }
 cfg.tls_cert_filename.as_ref().map(|s| ...) to operate on a borrowed &String
 cfg.tls_cert_filename.unwrap_or(default) to get a value or fallback
+```
 
-
-Example showing the builder setter and safe FFI conversion that handles Option<String> and potential NUL bytes:
+Example showing the builder setter and safe FFI conversion that handles 
+Option<String> and potential NUL bytes:
 
 ```
 // Rust
@@ -78,19 +85,19 @@ safely converting to CString while propagating errors, and passing
 either a pointer or NULL to the C side
 
 
-Briefly: the expression converts an Option<String> into a Result<Option<CString>, _> 
-that fails if any present string contains a NUL byte, then ? unwraps the Result so you end up with Option<CString> or return an error.
+Briefly: the expression converts an Option<String> into a 
+Result<Option<CString>, _>  that fails if any present string contains a NUL byte, 
+then ? unwraps the Result so you end up with Option<CString> or return an error.
 
 Key steps:
-as_ref() turns Option<String> into Option<&String> so you don't move out of the original config.
-map(|s| CString::new(s.as_str())) turns Option<&String> into Option<Result<CString, NulError>>.
-transpose() flips that to Result<Option<CString>, NulError>.
-map_err(...) converts the NulError into your crate Error.
-? propagates the error or yields Option<CString> on success.
+- as_ref() turns Option<String> into Option<&String> so you don't move out of the original config.
+- map(|s| CString::new(s.as_str())) turns Option<&String> into Option<Result<CString, NulError>>.
+- transpose() flips that to Result<Option<CString>, NulError>.
+- map_err(...) converts the NulError into your crate Error.
+- ? propagates the error or yields Option<CString> on success.
+
 Example equivalents (expanded and concise):
 
-
-```
 ```rust
 use std::ffi::CString;
 use crate::error::Error;
