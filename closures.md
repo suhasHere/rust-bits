@@ -1,3 +1,5 @@
+# Lazy Closure
+
 A lazy closure is a closure that is not executed until its value is needed. 
 In Rust this is commonly used with methods like `ok_or_else` where the 
 closure is called only when the `Option` is `None`, avoiding expensive 
