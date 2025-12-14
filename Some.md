@@ -1,5 +1,5 @@
 In the example 
-```
+```rust
 impl TransportConfigBuilder {
     /// Set the TLS certificate file path
     pub fn tls_cert(mut self, path: impl Into<String>) -> Self {
@@ -8,6 +8,7 @@ impl TransportConfigBuilder {
     }
 }
 ```
+
 `Some(..)` is the **“present value”** variant of Rust’s `Option<T>` type.
 
 ## What `Some(..)` means here
@@ -46,7 +47,7 @@ Common patterns:
 
 Check/use it:
 -
-```
+```rust
 if let Some(path) = &cfg.tls_cert_filename { ... }
 cfg.tls_cert_filename.as_ref().map(|s| ...) to operate on a borrowed &String
 cfg.tls_cert_filename.unwrap_or(default) to get a value or fallback
@@ -55,7 +56,7 @@ cfg.tls_cert_filename.unwrap_or(default) to get a value or fallback
 Example showing the builder setter and safe FFI conversion that handles 
 Option<String> and potential NUL bytes:
 
-```
+```rust
 // Rust
 impl TransportConfigBuilder {
     pub fn tls_cert(mut self, path: impl Into<String>) -> Self {
