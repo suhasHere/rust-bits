@@ -63,3 +63,21 @@ let data_ptr = sr.get_ref().data.as_str() as *const str;
 // - For shared ownership use `Rc` or `Arc`. For mutation across threads use `Arc<Mutex<T>>`.
 // - For FFI stability, ensure lifetime and safety when using raw pointers.
 ```
+
+Because `*bm` moves the owned `String` out of the `Box` (consuming the box), the `&` borrows instead: `&*bm` produces a `&String` which coerces to `&str` and lets you compare to the string literal without taking ownership. Alternatives: borrow via `as_str()` or slicing, or intentionally move with `*` if you want to consume the box.
+
+Example alternatives:
+```rust
+// rust
+let b = Box::new(String::from("hi there"));
+
+// borrow as &str via method (no move)
+assert_eq!(b.as_str(), "hi there");
+
+// borrow as &str via slice (no move)
+assert_eq!(&b[..], "hi there");
+
+// move the String out of the Box (consumes `b`)
+let s: String = *b;
+assert_eq!(s, String::from("hi there"));
+```
