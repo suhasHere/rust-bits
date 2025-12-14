@@ -82,3 +82,62 @@ fn main() {
     // p is NULL when `maybe_c` is None, safe fallback for FFI
 }
 ```
+
+
+When C needs to take ownership of a Rust `CString`, call `CString::into_raw()` to hand a `*mut c_char` to C. Later, when C is done, call a Rust-provided destructor that does `CString::from_raw(ptr)` exactly once to reclaim and drop the string (restoring Rust ownership). Do not call `from_raw` more than once and do not call the system `free` on the pointer unless allocator compatibility is guaranteed.
+
+```rust
+// rust
+use std::ffi::CString;
+use std::os::raw::c_char;
+
+/// Create a heap-allocated C string and transfer ownership to C.
+/// Caller (C) must call `quicr_string_free` when done.
+#[no_mangle]
+pub extern "C" fn quicr_string_new() -> *mut c_char {
+    // Build a CString (checks for interior NULs)
+    let s = CString::new("hello from Rust").expect("no null bytes");
+    // Transfer ownership to C; Rust will no longer drop `s`.
+    s.into_raw()
+}
+
+/// Reclaim ownership from C and drop the CString, freeing memory.
+/// Must be called exactly once for each pointer returned by `quicr_string_new`.
+#[no_mangle]
+pub extern "C" fn quicr_string_free(ptr: *mut c_char) {
+    if ptr.is_null() {
+        return;
+    }
+    // SAFETY: `from_raw` assumes pointer was produced by `CString::into_raw`
+    // and hasn't been reclaimed yet. It will take ownership and drop the CString.
+    unsafe {
+        let _ = CString::from_raw(ptr);
+        // `_` is dropped here, freeing the allocation.
+    }
+}
+
+/*
+C usage example (in a separate C file):
+
+#include <stdio.h>
+
+// signatures provided by Rust library
+extern char* quicr_string_new(void);
+extern void quicr_string_free(char*);
+
+int main(void) {
+    char* s = quicr_string_new();
+    if (s) {
+        printf("Rust says: %s\n", s);
+        // When done, tell Rust to reclaim and free the string:
+        quicr_string_free(s);
+    }
+    return 0;
+}
+
+Notes/warnings:
+- Only call `quicr_string_free` (which does `CString::from_raw`) once per pointer.
+- Do NOT call the C `free()` on the pointer unless you know the allocators are compatible.
+- Do not use the pointer after calling `quicr_string_free`.
+*/
+```
