@@ -90,3 +90,4 @@ fn main() {
     // When `h` goes out of scope, Drop reconstructs Box and frees memory
 }
 ```
+For information on Drop see [here](https://github.com/suhasHere/rust-bits/blob/main/drop-trait.md)
