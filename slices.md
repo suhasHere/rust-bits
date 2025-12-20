@@ -102,3 +102,34 @@ fn main() {
     assert_eq!(copied[0].as_slice(), b"hello");
 }
 ```
+
+## More examples
+
+`Vec<T>` dereferences to the slice type `[T]` (it implements `Deref<Target = [T]>`), so a `&Vec<T>` is automatically coerced to a `&[T]`. In your code `&self.entries` is a `&Vec<Bytes>` and the function return type `&[Bytes]` is satisfied by that coercion. The returned slice borrows from `self`, so its lifetime is tied to `&self`.
+
+Example (three equivalent ways):
+
+```rust
+use bytes::Bytes;
+
+struct S {
+    entries: Vec<Bytes>,
+}
+
+impl S {
+    // implicit coercion: &Vec<Bytes> -> &[Bytes]
+    fn entries(&self) -> &[Bytes] {
+        &self.entries
+    }
+
+    // explicit slice range
+    fn entries2(&self) -> &[Bytes] {
+        &self.entries[..]
+    }
+
+    // explicit API
+    fn entries3(&self) -> &[Bytes] {
+        self.entries.as_slice()
+    }
+}
+```
