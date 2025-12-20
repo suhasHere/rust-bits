@@ -1,3 +1,46 @@
+# Slices and Borrowing
+`[T]` is the unsized slice type; `&[T]` is the borrowed slice (pointer + length). Common sources are arrays and `Vec<T>`. `&Vec<T>` can coerce to `&[T]`, but an API should usually accept `&[T]` for flexibility.
+
+```rust
+// language: rust
+use std::fmt::Debug;
+
+fn print_slice<T: Debug>(s: &[T]) {
+    // takes a borrowed slice (does not take ownership)
+    println!("slice: {:?}", s);
+}
+
+fn print_vec_ref<T: Debug>(v: &Vec<T>) {
+    // takes a borrowed Vec specifically
+    println!("vec ref: {:?}", v);
+}
+
+fn main() {
+    // array -> slice
+    let arr = [10, 20, 30];
+    let arr_slice: &[i32] = &arr;        // array coerces to `&[i32]`
+    print_slice(arr_slice);
+    print_slice(&arr);                  // also works (coercion)
+
+    // vec -> slice
+    let v = vec![1, 2, 3];
+    print_slice(&v);                    // &Vec<T> coerces to &[T]
+    print_vec_ref(&v);                  // you can also pass &Vec<T>
+
+    // slice from a temporary array literal
+    print_slice(&[4, 5, 6]);            // array literal coerces to slice
+
+    // note: you *cannot* pass a `&[T]` to a function expecting `&Vec<T>`
+    // let s: &[i32] = &arr;
+    // print_vec_ref(s); // ERROR: expected `&Vec<i32>`, found `&[i32]`
+}
+```
+
+Summary:
+- Use `&[T]` for APIs that accept any contiguous sequence (array, `Vec`, literal).
+- `&Vec<T>` is more specific and less flexible; prefer `&[T]` unless you need `Vec` methods.
+
+## Byte Buffer
 
 `&[&[u8]]` reads as "a borrowed slice of borrowed byte slices."
 
@@ -18,6 +61,8 @@ fn copy_all(buffers: &[&[u8]]) -> Vec<Vec<u8>> {
     buffers.iter().map(|b| b.to_vec()).collect()
 }
 
+
+## String Buffers
 
 `entries: &[&str]` means "a borrowed slice of borrowed string slices".
 
