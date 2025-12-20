@@ -60,9 +60,10 @@ Example
 fn copy_all(buffers: &[&[u8]]) -> Vec<Vec<u8>> {
     buffers.iter().map(|b| b.to_vec()).collect()
 }
-
+```
 
 ## String Buffers
+
 
 `entries: &[&str]` means "a borrowed slice of borrowed string slices".
 
